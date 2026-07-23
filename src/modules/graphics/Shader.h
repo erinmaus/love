@@ -126,6 +126,7 @@ public:
 		std::map<std::string, std::string> defines;
 		std::string debugName;
 		bool features[FEATURE_MAX_ENUM] = {};
+		OptionalBool gles;
 	};
 
 	struct SourceInfo

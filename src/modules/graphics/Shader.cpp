@@ -1307,7 +1307,9 @@ bool Shader::validateInternal(StrongRef<ShaderStage> stages[], std::string &err,
 	reflection.textureCount = 0;
 	reflection.bufferCount = 0;
 
-	auto &capabilities = Module::getInstance<Graphics>(Module::M_GRAPHICS)->getCapabilities();
+	auto gfx = Module::getInstance<Graphics>(Module::M_GRAPHICS);
+	auto &capabilities = gfx->getCapabilities();
+	bool gles = options.gles.get(gfx->usesGLSLES());
 	for (int i = 0; i < program.getNumUniformVariables(); i++)
 	{
 		const glslang::TObjectReflection &info = program.getUniform(i);
@@ -1359,6 +1361,12 @@ bool Shader::validateInternal(StrongRef<ShaderStage> stages[], std::string &err,
 			if ((!qualifiers.isReadOnly() || qualifiers.isWriteOnly()) && ((info.stages & (~EShLangFragmentMask)) != 0) && !capabilities.features[Graphics::FEATURE_PIXEL_WRITE])
 			{
 				err = "Shader validation error:\nPlatform does not have writable Storage Texture uniform variables (image2D, etc) capabilities in pixel shaders.";
+				return false;
+			}
+
+			if (gles && !qualifiers.hasBinding())
+			{
+				err = "Shader validation error:\nStorage Texture '" + u.name + "' must have an explicit binding set in its layout declaration on OpenGL ES.";
 				return false;
 			}
 
@@ -1495,6 +1503,12 @@ bool Shader::validateInternal(StrongRef<ShaderStage> stages[], std::string &err,
 			if ((!qualifiers.isReadOnly() || qualifiers.isWriteOnly()) && ((info.stages & (~EShLangVertexMask)) != 0) && !capabilities.features[Graphics::FEATURE_VERTEX_WRITE])
 			{
 				err = "Shader validation error:\nPlatform does not have writable Storage Buffer blocks capabilities in vertex shaders.";
+				return false;
+			}
+
+			if (gles && !qualifiers.hasBinding())
+			{
+				err = "Shader validation error:\nStorage Buffer block '" + info.name + "' must have an explicit binding set in its layout declaration on OpenGL ES.";
 				return false;
 			}
 

@@ -1687,13 +1687,14 @@ int w_validateShader(lua_State *L)
 
 	std::vector<std::string> stages;
 	Shader::CompileOptions options;
+	options.gles = gles;
 	w_getShaderSource(L, 2, stages, options);
 
 	bool success = true;
 	std::string err;
 	try
 	{
-		success = instance()->validateShader(gles, stages, options, err);
+		success = instance()->validateShader(stages, options, err);
 	}
 	catch (love::Exception &e)
 	{

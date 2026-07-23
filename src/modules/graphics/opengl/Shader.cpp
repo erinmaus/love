@@ -241,11 +241,23 @@ void Shader::mapActiveUniforms()
 					u.ints[i] = -1;
 			}
 
-			// Unlike local uniforms and attributes, OpenGL doesn't auto-assign storage
-			// block bindings if they're unspecified in the shader. So we overwrite them
-			// regardless, here.
-			u.ints[0] = nextstoragebufferbinding++;
-			glShaderStorageBlockBinding(program, sindex, u.ints[0]);
+			if (GLAD_VERSION_4_3)
+			{
+				// Unlike local uniforms and attributes, OpenGL doesn't auto-assign storage
+				// block bindings if they're unspecified in the shader. So we overwrite them
+				// regardless, here.
+				u.ints[0] = nextstoragebufferbinding++;
+				glShaderStorageBlockBinding(program, sindex, u.ints[0]);
+			}
+			else
+			{
+				// But... for OpenGL ES, this isn't possible. So get the buffer location from the shader.
+				// If the shader code didn't specify a location for buffer on OpenGL ES, validateShader fails.
+				GLenum prop = GL_BUFFER_BINDING;
+				GLint param = 0;
+				glGetProgramResourceiv(program, GL_SHADER_STORAGE_BLOCK, u.resourceIndex, 1, &prop, 1, nullptr, &param);
+				u.ints[0] = param;
+			}
 
 			BufferBinding binding;
 			binding.bindingindex = u.ints[0];

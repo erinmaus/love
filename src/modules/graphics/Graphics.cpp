@@ -528,7 +528,7 @@ void Graphics::cleanupCachedShaderStage(ShaderStageType type, const std::string 
 	cachedShaderStages[type].erase(hashkey);
 }
 
-bool Graphics::validateShader(bool gles, const std::vector<std::string> &stagessource, const Shader::CompileOptions &options, std::string &err)
+bool Graphics::validateShader(const std::vector<std::string> &stagessource, const Shader::CompileOptions &options, std::string &err)
 {
 	StrongRef<ShaderStage> stages[SHADERSTAGE_MAX_ENUM] = {};
 
@@ -554,8 +554,8 @@ bool Graphics::validateShader(bool gles, const std::vector<std::string> &stagess
 			if (info.stages[i] != Shader::ENTRYPOINT_NONE)
 			{
 				isanystage = true;
-				std::string glsl = Shader::createShaderStageCode(this, stype, source, options, info, gles, false);
-				stages[i].set(new ShaderStageForValidation(this, stype, glsl, gles), Acquire::NORETAIN);
+				std::string glsl = Shader::createShaderStageCode(this, stype, source, options, info, options.gles.get(false), false);
+				stages[i].set(new ShaderStageForValidation(this, stype, glsl, options.gles.get(false)), Acquire::NORETAIN);
 			}
 		}
 

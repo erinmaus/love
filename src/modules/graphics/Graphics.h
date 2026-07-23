@@ -507,7 +507,7 @@ public:
 	image::ImageData *readbackTexture(Texture *texture, int slice, int mipmap, const Rect &rect, image::ImageData *dest, int destx, int desty);
 	GraphicsReadback *readbackTextureAsync(Texture *texture, int slice, int mipmap, const Rect &rect, image::ImageData *dest, int destx, int desty);
 
-	bool validateShader(bool gles, const std::vector<std::string> &stages, const Shader::CompileOptions &options, std::string &err);
+	bool validateShader(const std::vector<std::string> &stages, const Shader::CompileOptions &options, std::string &err);
 
 	Texture *getDefaultTexture(TextureType type, DataBaseType dataType, bool depthSample);
 	Buffer *getDefaultTexelBuffer(DataBaseType dataType);

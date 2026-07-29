@@ -2807,13 +2807,13 @@ bool Graphics::prepareBarrier(VkAccessFlags &dstAccessMask, VkPipelineStageFlags
 	if (!shader)
 		return false;
 
-	if (!shaderBarrierFlags(s, dstAccessMask, dstStageMask))
+	if (!shaderBarrierFlags(shader, dstAccessMask, dstStageMask))
 		return false;
 
 	return true;
 }
 
-void Graphics::tryBarrier(kAccessFlags dstAccessMask, VkPipelineStageFlags dstStageMask)
+void Graphics::tryBarrier(VkAccessFlags dstAccessMask, VkPipelineStageFlags dstStageMask)
 {
 	if (dstAccessMask == 0 && dstStageMask == 0)
 		return;

@@ -957,6 +957,11 @@ void Graphics::draw(const DrawCommand &cmd)
 {
 	prepareDraw(cmd.attributesID, *cmd.buffers, cmd.texture, cmd.primitiveType, cmd.cullMode);
 
+	VkAccessFlags dstAccessMask;
+	VkPipelineStageFlags dstStageMask;
+	if (!prepareBarrier(dstAccessMask, dstStageMask))
+		return;
+
 	if (cmd.indirectBuffer != nullptr)
 	{
 		vkCmdDrawIndirect(
@@ -976,13 +981,18 @@ void Graphics::draw(const DrawCommand &cmd)
 			0);
 	}
 
-	endDraw();
+	tryBarrier(dstAccessMask, dstStageMask);
 	drawCalls++;
 }
 
 void Graphics::draw(const DrawIndexedCommand &cmd)
 {
 	prepareDraw(cmd.attributesID, *cmd.buffers, cmd.texture, cmd.primitiveType, cmd.cullMode);
+
+	VkAccessFlags dstAccessMask;
+	VkPipelineStageFlags dstStageMask;
+	if (!prepareBarrier(dstAccessMask, dstStageMask))
+		return;
 
 	vkCmdBindIndexBuffer(
 		commandBuffers.at(currentFrame),
@@ -1010,7 +1020,7 @@ void Graphics::draw(const DrawIndexedCommand &cmd)
 			0);
 	}
 
-	endDraw();
+	tryBarrier(dstAccessMask, dstStageMask);
 	drawCalls++;
 }
 
@@ -1020,6 +1030,12 @@ void Graphics::drawQuads(int start, int count, VertexAttributesID attributesID, 
 	const int MAX_QUADS_PER_DRAW = MAX_VERTICES_PER_DRAW / 4;
 
 	prepareDraw(attributesID, buffers, texture, PRIMITIVE_TRIANGLES, CULL_NONE);
+
+	VkAccessFlags dstAccessMask;
+	VkPipelineStageFlags dstStageMask;
+	if (!prepareBarrier(dstAccessMask, dstStageMask))
+		return;
+
 
 	vkCmdBindIndexBuffer(
 		commandBuffers.at(currentFrame),
@@ -1042,7 +1058,7 @@ void Graphics::drawQuads(int start, int count, VertexAttributesID attributesID, 
 			0);
 		baseVertex += quadcount * 4;
 
-		endDraw();
+		tryBarrier(dstAccessMask, dstStageMask);
 		drawCalls++;
 	}
 }
@@ -2710,7 +2726,7 @@ void Graphics::createVulkanVertexFormat(
 	}
 }
 
-bool Graphics::prepareDraw(VertexAttributesID attributesID, const BufferBindings &buffers, graphics::Texture *texture, PrimitiveType primitiveType, CullMode cullmode)
+void Graphics::prepareDraw(VertexAttributesID attributesID, const BufferBindings &buffers, graphics::Texture *texture, PrimitiveType primitiveType, CullMode cullmode)
 {
 	if (!renderPassState.active)
 		startRenderPass();
@@ -2797,7 +2813,7 @@ bool Graphics::prepareBarrier(VkAccessFlags &dstAccessMask, VkPipelineStageFlags
 	return true;
 }
 
-void Graphics::endDraw(kAccessFlags dstAccessMask, VkPipelineStageFlags dstStageMask)
+void Graphics::tryBarrier(kAccessFlags dstAccessMask, VkPipelineStageFlags dstStageMask)
 {
 	if (dstAccessMask == 0 && dstStageMask == 0)
 		return;

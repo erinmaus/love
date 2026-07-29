@@ -372,7 +372,7 @@ private:
 		VertexAttributesID attributesID,
 		const BufferBindings &buffers, graphics::Texture *texture,
 		PrimitiveType, CullMode);
-	void prepareBarrier(VkAccessFlags &dstAccessMask, VkPipelineStageFlags &dstStageMask);
+	bool prepareBarrier(VkAccessFlags &dstAccessMask, VkPipelineStageFlags &dstStageMask);
 	void tryBarrier(VkAccessFlags dstAccessMask, VkPipelineStageFlags dstStageMask);
 	void setRenderPass(const RenderTargets &rts, int pixelw, int pixelh);
 	void setDefaultRenderPass();

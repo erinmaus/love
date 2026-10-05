@@ -2323,8 +2323,11 @@ void Graphics::initCapabilities()
 		capabilities.features[FEATURE_VERTEX_WRITE] = false;
 		capabilities.features[FEATURE_PIXEL_WRITE] = false;
 	}
+
+	if (families.mac[2] || families.apple[5])
+		capabilities.features[FEATURE_SHADER_OUTPUT_LAYER] = true;
 	
-	static_assert(FEATURE_MAX_ENUM == 15, "Graphics::initCapabilities must be updated when adding a new graphics feature!");
+	static_assert(FEATURE_MAX_ENUM == 16, "Graphics::initCapabilities must be updated when adding a new graphics feature!");
 
 	// https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf
 	capabilities.limits[LIMIT_POINT_SIZE] = 511;

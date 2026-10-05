@@ -843,7 +843,8 @@ void Graphics::initCapabilities()
 	capabilities.features[FEATURE_INDIRECT_DRAW] = true;
 	capabilities.features[FEATURE_VERTEX_WRITE] = features.vertexPipelineStoresAndAtomics;
 	capabilities.features[FEATURE_PIXEL_WRITE] = features.fragmentStoresAndAtomics;
-	static_assert(FEATURE_MAX_ENUM == 15, "Graphics::initCapabilities must be updated when adding a new graphics feature!");
+	capabilities.features[FEATURE_SHADER_OUTPUT_LAYER] = optionalDeviceExtensions.shaderOutputLayer;
+	static_assert(FEATURE_MAX_ENUM == 16, "Graphics::initCapabilities must be updated when adding a new graphics feature!");
 
 	VkPhysicalDeviceProperties properties;
 	vkGetPhysicalDeviceProperties(physicalDevice, &properties);

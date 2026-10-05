@@ -1092,6 +1092,9 @@ void Graphics::setRenderTargets(const RenderTargets &rts)
 	if (rtcount > capabilities.limits[LIMIT_RENDER_TARGETS])
 		throw love::Exception("This system can't simultaneously render to %d textures.", rtcount);
 
+	if (rts.allLayers && !capabilities.features[FEATURE_SHADER_OUTPUT_LAYER])
+		throw love::Exception("This system does not support layered rendering");
+
 	bool hasSRGBtexture = false;
 	int pixelw = firsttex->getPixelWidth(firsttarget.mipmap);
 	int pixelh = firsttex->getPixelHeight(firsttarget.mipmap);
@@ -3001,6 +3004,7 @@ STRINGMAP_CLASS_BEGIN(Graphics, Graphics::Feature, Graphics::FEATURE_MAX_ENUM, f
 	{ "indirectdraw",             Graphics::FEATURE_INDIRECT_DRAW        },
 	{ "vertexwrite",              Graphics::FEATURE_VERTEX_WRITE         },
 	{ "pixelwrite",               Graphics::FEATURE_PIXEL_WRITE          },
+	{ "shaderoutputlayers",       Graphics::FEATURE_SHADER_OUTPUT_LAYER  },
 }
 STRINGMAP_CLASS_END(Graphics, Graphics::Feature, Graphics::FEATURE_MAX_ENUM, feature)
 

@@ -1265,6 +1265,21 @@ bool OpenGL::rawTexStorage(TextureType target, int levels, PixelFormat pixelform
 	return gltarget != GL_ZERO;
 }
 
+bool OpenGL::isExtensionSupported(const char *extension)
+{
+	GLint count = 0;
+	glGetIntegerv(GL_NUM_EXTENSIONS, &count);
+
+	for (GLint i = 0; i < count; ++i)
+	{
+		const char* currentExtension = (const char*)glGetStringi(GL_EXTENSIONS, i);
+		if (strcmp(currentExtension, extension) == 0)
+			return true;
+	}
+
+	return false;
+}
+
 bool OpenGL::isTexStorageSupported()
 {
 	if (gl.bugs.texStorageBreaksSubImage)

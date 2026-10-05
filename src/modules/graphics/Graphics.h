@@ -403,10 +403,12 @@ public:
 		std::vector<RenderTarget> colors;
 		RenderTarget depthStencil;
 		uint32 temporaryRTFlags;
+		bool allLayers;
 
 		RenderTargets()
 			: depthStencil(nullptr)
 			, temporaryRTFlags(0)
+			, allLayers(false)
 		{}
 
 		const RenderTarget &getFirstTarget() const
@@ -426,7 +428,7 @@ public:
 					return false;
 			}
 
-			if (depthStencil != other.depthStencil || temporaryRTFlags != other.temporaryRTFlags)
+			if (depthStencil != other.depthStencil || temporaryRTFlags != other.temporaryRTFlags || allLayers != other.allLayers)
 				return false;
 
 			return true;
@@ -438,10 +440,12 @@ public:
 		std::vector<RenderTargetStrongRef> colors;
 		RenderTargetStrongRef depthStencil;
 		uint32 temporaryRTFlags;
+		bool allLayers;
 
 		RenderTargetsStrongRef()
 			: depthStencil(nullptr)
 			, temporaryRTFlags(0)
+			, allLayers(false)
 		{}
 
 		const RenderTargetStrongRef &getFirstTarget() const

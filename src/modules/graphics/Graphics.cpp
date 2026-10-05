@@ -1096,6 +1096,7 @@ void Graphics::setRenderTargets(const RenderTargets &rts)
 	int pixelw = firsttex->getPixelWidth(firsttarget.mipmap);
 	int pixelh = firsttex->getPixelHeight(firsttarget.mipmap);
 	int reqmsaa = firsttex->getRequestedMSAA();
+	int layercount = firsttex->getLayerCount();
 
 	for (int i = 0; i < rtcount; i++)
 	{
@@ -1118,6 +1119,9 @@ void Graphics::setRenderTargets(const RenderTargets &rts)
 
 		if (c->getRequestedMSAA() != reqmsaa)
 			throw love::Exception("All textures must have the same MSAA value.");
+		
+		if (rts.allLayers && c->getLayerCount() != layercount)
+			throw love::Exception("All textures must have same layer count.");
 
 		if (isPixelFormatDepthStencil(format))
 			throw love::Exception("Depth/stencil format textures must be used with the 'depthstencil' field of the table passed into setCanvas.");
@@ -1144,6 +1148,9 @@ void Graphics::setRenderTargets(const RenderTargets &rts)
 		if (c->getRequestedMSAA() != firsttex->getRequestedMSAA())
 			throw love::Exception("All Textures must have the same MSAA value.");
 
+		if (rts.allLayers && c->getLayerCount() != layercount)
+			throw love::Exception("All textures must have same layer count.");
+
 		if (mip < 0 || mip >= c->getMipmapCount())
 			throw love::Exception("Invalid mipmap level %d.", mip + 1);
 
@@ -1155,6 +1162,9 @@ void Graphics::setRenderTargets(const RenderTargets &rts)
 
 	if (rts.depthStencil.texture == nullptr && rts.temporaryRTFlags != 0)
 	{
+		if (rts.allLayers)
+			throw love::Exception("Cannot automatically create depth/stencil buffer when using multilayer rendering");
+
 		bool wantsdepth   = (rts.temporaryRTFlags & TEMPORARY_RT_DEPTH) != 0;
 		bool wantsstencil = (rts.temporaryRTFlags & TEMPORARY_RT_STENCIL) != 0;
 
@@ -1219,6 +1229,7 @@ void Graphics::setRenderTargets(const RenderTargets &rts)
 
 	refs.depthStencil = RenderTargetStrongRef(rts.depthStencil.texture, rts.depthStencil.slice);
 	refs.temporaryRTFlags = rts.temporaryRTFlags;
+	refs.allLayers = rts.allLayers;
 
 	std::swap(state.renderTargets, refs);
 

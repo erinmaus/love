@@ -134,6 +134,24 @@ static MTLPrimitiveType getMTLPrimitiveType(PrimitiveType prim)
 	return MTLPrimitiveTypeTriangle;
 }
 
+static MTLPrimitiveTopologyClass getMTLTopologyClass(PrimitiveType prim, bool isLayeredRendering)
+{
+	if (!isLayeredRendering)
+	{
+		return MTLPrimitiveTopologyClassUnspecified;
+	}
+
+	switch (prim)
+	{
+		case PRIMITIVE_TRIANGLES: return MTLPrimitiveTopologyClassTriangle;
+		case PRIMITIVE_TRIANGLE_STRIP: return MTLPrimitiveTopologyClassTriangle;
+		case PRIMITIVE_TRIANGLE_FAN: return MTLPrimitiveTopologyClassTriangle;
+		case PRIMITIVE_POINTS: return MTLPrimitiveTopologyClassPoint;
+		case PRIMITIVE_MAX_ENUM: return MTLPrimitiveTopologyClassTriangle;
+	}
+	return MTLPrimitiveTopologyClassTriangle;
+}
+
 static inline id<MTLTexture> getMTLTexture(love::graphics::Texture *tex)
 {
 	return tex ? (__bridge id<MTLTexture>)(void *) tex->getHandle() : nil;
@@ -688,6 +706,7 @@ id<MTLRenderCommandEncoder> Graphics::useRenderEncoder()
 			passDesc.colorAttachments[0].level = 0;
 			passDesc.colorAttachments[0].slice = 0;
 			passDesc.colorAttachments[0].depthPlane = 0;
+			passDesc.renderTargetArrayLength = 0;
 
 			RenderTarget rt(backbufferDepthStencil);
 			if (rt.texture != nullptr && isPixelFormatDepth(rt.texture->getPixelFormat()))
@@ -916,12 +935,14 @@ id<MTLDepthStencilState> Graphics::getCachedDepthStencilState(const DepthState &
 	return mtlstate;
 }
 
-void Graphics::applyRenderState(id<MTLRenderCommandEncoder> encoder, VertexAttributesID attributesID)
+void Graphics::applyRenderState(id<MTLRenderCommandEncoder> encoder, VertexAttributesID attributesID, PrimitiveType primitiveType)
 {
 	const uint32 pipelineStateBits = STATEBIT_SHADER | STATEBIT_BLEND | STATEBIT_COLORMASK;
 
 	uint32 dirtyState = dirtyRenderState;
 	const auto &state = states.back();
+	
+	MTLPrimitiveTopologyClass topology = getMTLTopologyClass(primitiveType, state.renderTargets.allLayers);
 
 	if (dirtyState & (STATEBIT_VIEWPORT | STATEBIT_SCISSOR))
 	{
@@ -993,7 +1014,7 @@ void Graphics::applyRenderState(id<MTLRenderCommandEncoder> encoder, VertexAttri
 		[encoder setCullMode:mode];
 	}
 
-	if ((dirtyState & pipelineStateBits) != 0 || attributesID != lastRenderPipelineKey.vertexAttributesID)
+	if ((dirtyState & pipelineStateBits) != 0 || attributesID != lastRenderPipelineKey.vertexAttributesID || topology != lastRenderPipelineKey.topology)
 	{
 		auto &key = lastRenderPipelineKey;
 
@@ -1006,6 +1027,7 @@ void Graphics::applyRenderState(id<MTLRenderCommandEncoder> encoder, VertexAttri
 		{
 			key.blendStateKey = state.blend.toKey();
 			key.colorChannelMask = state.colorMask;
+			key.topology = topology;
 
 			pipeline = shader->getCachedRenderPipeline(this, key);
 		}
@@ -1266,7 +1288,7 @@ void Graphics::draw(const DrawCommand &cmd)
 		dirtyRenderState |= STATEBIT_CULLMODE;
 	}
 
-	applyRenderState(encoder, cmd.attributesID);
+	applyRenderState(encoder, cmd.attributesID, cmd.primitiveType);
 	if (!applyShaderUniforms(encoder, Shader::current, cmd.texture))
 		return;
 
@@ -1299,7 +1321,7 @@ void Graphics::draw(const DrawIndexedCommand &cmd)
 		dirtyRenderState |= STATEBIT_CULLMODE;
 	}
 
-	applyRenderState(encoder, cmd.attributesID);
+	applyRenderState(encoder, cmd.attributesID, cmd.primitiveType);
 	if (!applyShaderUniforms(encoder, Shader::current, cmd.texture))
 		return;
 
@@ -1365,7 +1387,7 @@ void Graphics::drawQuads(int start, int count, VertexAttributesID attributesID, 
 		dirtyRenderState |= STATEBIT_CULLMODE;
 	}
 
-	applyRenderState(encoder, attributesID);
+	applyRenderState(encoder, attributesID, PRIMITIVE_TRIANGLES);
 	if (!applyShaderUniforms(encoder, Shader::current, texture))
 		return;
 
@@ -1500,6 +1522,9 @@ void Graphics::setRenderTargetsInternal(const RenderTargets &rts, int /*pixelw*/
 	passDesc.depthAttachment.loadAction = MTLLoadActionLoad;
 	passDesc.stencilAttachment = nil;
 	passDesc.stencilAttachment.loadAction = MTLLoadActionLoad;
+
+	if (rts.allLayers)
+		passDesc.renderTargetArrayLength = rts.getFirstTarget().texture->getLayerCount();
 
 	auto ds = rts.depthStencil.texture;
 	if (isbackbuffer && ds == nullptr)

@@ -1173,8 +1173,18 @@ GLuint Graphics::bindCachedFBO(const RenderTargets &targets)
 				{
 					TextureType textype = rt.texture->getTextureType();
 
-					int layer = textype == TEXTURE_CUBE ? 0 : rt.slice;
-					int face = textype == TEXTURE_CUBE ? rt.slice : 0;
+					int layer = 0, face = 0;
+					if (targets.allLayers)
+					{
+						layer = textype == TEXTURE_CUBE ? 0 : OpenGL::FRAMEBUFFER_ALL_LAYERS;
+						face = textype == TEXTURE_CUBE ? OpenGL::FRAMEBUFFER_ALL_FACES : 0;
+					}
+					else
+					{
+						layer = textype == TEXTURE_CUBE ? 0 : rt.slice;
+						face = textype == TEXTURE_CUBE ? rt.slice : 0;
+					}
+
 					int level = rt.mipmap;
 
 					gl.framebufferTexture(attachment, textype, handle, level, layer, face);

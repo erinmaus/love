@@ -320,6 +320,7 @@ protected:
 
 		int localThreadgroupSize[3];
 		bool usesPointSize;
+		bool usesLayer;
 	};
 
 	std::string getShaderStageDebugName(ShaderStageType stage) const;

@@ -971,6 +971,17 @@ void Shader::validateDrawState(PrimitiveType primtype, Texture *maintex) const
 			throw love::Exception("The gl_PointSize variable must be set in a vertex shader when drawing points.");
 	}
 
+	auto rts = Module::getInstance<Graphics>(Module::M_GRAPHICS)->getRenderTargets();
+	bool shaderUsesLayerRendering = reflection.usesLayer;
+	bool renderTargetUsesLayerRendering = rts.allLayers;
+	if (shaderUsesLayerRendering != renderTargetUsesLayerRendering)
+	{
+		if (shaderUsesLayerRendering && !renderTargetUsesLayerRendering)
+			throw love::Exception("The active shader can only be used with all layers of an array image texture bound as the current canvas");
+		else if (!shaderUsesLayerRendering && renderTargetUsesLayerRendering)
+			throw love::Exception("The gl_Layer variable must be set in a vertex shader when all layers of an array image texture bound as the current canvas");
+	}
+
 	if (maintex == nullptr)
 		return;
 
@@ -1276,6 +1287,7 @@ bool Shader::validateInternal(StrongRef<ShaderStage> stages[], std::string &err,
 	{
 		// NOTE: this doesn't check whether the use affects final output...
 		reflection.usesPointSize = vertintermediate->inIoAccessed("gl_PointSize");
+		reflection.usesLayer = vertintermediate->inIoAccessed("gl_Layer");
 	}
 
 	if (stages[SHADERSTAGE_COMPUTE] != nullptr)

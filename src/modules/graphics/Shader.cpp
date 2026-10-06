@@ -620,6 +620,9 @@ std::string Shader::createShaderStageCode(Graphics *gfx, ShaderStageType stage, 
 
 	if (gfx->isUsingNoTextureCubeShadowBiasHack())
 		ss << "#define LOVE_NO_TEXTURECUBESHADOWBIAS_HACK 1\n";
+	
+	if (gfx->getCapabilities().features[Graphics::FEATURE_SHADER_OUTPUT_LAYER] && stage == SHADERSTAGE_VERTEX)
+		ss << "#extension GL_ARB_shader_viewport_layer_array : enable\n";
 
 	for (const auto &def : options.defines)
 		ss << "#define " + def.first + " " + def.second + "\n";

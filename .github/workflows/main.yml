@@ -71,7 +71,6 @@ jobs:
         sleep 3
         openbox &
         echo "OPENBOXPID=$!" >> $GITHUB_ENV
-        echo "allow_glsl_extension_directive_midshader=true" >> $GITHUB_ENV
     # linux opengl tests
     - name: Run Test Suite (opengl)
       run: |

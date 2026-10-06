@@ -439,8 +439,6 @@ public:
 	 **/
 	Vendor getVendor() const;
 
-	static bool isExtensionSupported(const char *extension);
-
 	static GLenum getGLPrimitiveType(PrimitiveType type);
 	static GLenum getGLBufferType(BufferUsage usage);
 	static GLenum getGLIndexDataType(IndexDataType type);

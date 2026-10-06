@@ -2217,7 +2217,6 @@ love.test.graphics.setCanvas = function(test)
   if love.graphics.getSupported().shaderoutputlayers and love.graphics.getSupported().glsl4 then
     local shader = love.graphics.newShader [[
       #pragma language glsl4
-      #extension GL_ARB_shader_viewport_layer_array : enable
 
       #ifdef VERTEX
 

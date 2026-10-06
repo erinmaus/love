@@ -1296,6 +1296,7 @@ Graphics::RenderTargets Graphics::getRenderTargets() const
 
 	rts.depthStencil = RenderTarget(curRTs.depthStencil.texture, curRTs.depthStencil.slice, curRTs.depthStencil.mipmap);
 	rts.temporaryRTFlags = curRTs.temporaryRTFlags;
+	rts.allLayers = curRTs.allLayers;
 
 	return rts;
 }

@@ -412,7 +412,7 @@ int w_getCanvas(lua_State *L)
 		return 1;
 	}
 
-	bool shouldUseTablesVariant = targets.depthStencil.texture != nullptr;
+	bool shouldUseTablesVariant = targets.depthStencil.texture != nullptr || targets.allLayers;
 
 	if (!shouldUseTablesVariant)
 	{
@@ -440,6 +440,12 @@ int w_getCanvas(lua_State *L)
 		{
 			pushRenderTarget(L, targets.depthStencil);
 			lua_setfield(L, -2, "depthstencil");
+		}
+
+		if (targets.allLayers)
+		{
+			lua_pushboolean(L, true);
+			lua_setfield(L, -2, "alllayers");
 		}
 
 		return 1;

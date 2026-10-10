@@ -474,7 +474,7 @@ void Texture::createRenderTargetImageViews(VulkanImageData &data)
 				VkImageViewCreateInfo multiLayerViewInfo = viewInfo;
 				multiLayerViewInfo.subresourceRange.layerCount = layerCount - rootView.startLayer;
 
-				VkResult multiLayerResult = vkCreateImageView(device, &viewInfo, nullptr, &data.renderTargetImageViews.at(mip).multiImageView);
+				VkResult multiLayerResult = vkCreateImageView(device, &multiLayerViewInfo, nullptr, &data.renderTargetImageViews.at(mip).multiImageView);
 				if (multiLayerResult != VK_SUCCESS)
 					throw love::Exception("Could not create Vulkan render target image view: %s", Vulkan::getErrorString(result));
 			}

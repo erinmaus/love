@@ -976,6 +976,20 @@ void Shader::validateDrawState(Graphics *gfx, PrimitiveType primtype, Texture *m
 	bool renderTargetUsesLayerRendering = rts.shaderLayer;
 	if (shaderUsesLayerRendering != renderTargetUsesLayerRendering)
 		throw love::Exception("Both the gl_Layer variable must be written to in the vertex shader and the field 'shaderlayer' must be true when binding a canvas to use layer rendering.");
+	
+	for (int i = 0; i < rts.colors.size(); ++i)
+	{
+		Texture *attachment = rts.colors.at(i).texture;
+		int attachmentPixelComponentCount = getPixelFormatColorComponents(attachment->getPixelFormat());
+
+		auto iter = reflection.fragmentOutputs.find(i);
+		if (iter == reflection.fragmentOutputs.end())
+			throw love::Exception("Missing pixel shader output for canvas at index %d", i + 1);
+		
+		const FragmentOutput& output = iter->second;
+		if (output.componentCount < attachmentPixelComponentCount)
+			throw love::Exception("Pixel shader output '%s' has only writes %d components but canvas at index %d has %d components", output.name.c_str(), output.componentCount, i + 1, attachmentPixelComponentCount);
+	}
 
 	if (maintex == nullptr)
 		return;
@@ -1312,6 +1326,33 @@ bool Shader::validateInternal(StrongRef<ShaderStage> stages[], std::string &err,
 			location = -1;
 
 		reflection.vertexInputs[info.name] = location;
+	}
+
+	for (int i = 0; i < program.getNumPipeOutputs(); ++i)
+	{
+		const glslang::TObjectReflection &info = program.getPipeOutput(i);
+
+		if (info.name.rfind("gl_", 0) == 0)
+			continue;
+
+		int location = info.layoutLocation();
+		if (location == glslang::TQualifier::layoutLocationEnd)
+		{
+			err = "Pixel output " + info.name + " does not have 'location' layout qualifier in pixel shader code";
+			return false;
+		}
+
+		info.dump();
+
+		for (int j = 0; j < info.size; ++j)
+		{
+			FragmentOutput output;
+			output.name = info.name;
+			output.location = location + j;
+			output.componentCount = info.getType()->getVectorSize();
+
+			reflection.fragmentOutputs[output.location] = output;
+		}
 	}
 
 	reflection.textureCount = 0;
